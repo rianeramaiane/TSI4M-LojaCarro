@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>CRUD de Utilizadores</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div id="app" class="max-w-2xl mx-auto bg-white p-6 rounded shadow">
+        <h1 class="text-2xl font-bold mb-4">Gestão de Utilizadores</h1>
+        
+        <form @submit.prevent="salvarUsuario" class="mb-6 flex gap-2">
+            <input v-model="novoUsuario.nome" type="text" placeholder="Nome" class="border p-2 rounded w-full" required>
+            <input v-model="novoUsuario.cargo" type="text" placeholder="Cargo" class="border p-2 rounded w-full" required>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Gravar</button>
+        </form>
+
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="p-2 border">ID</th>
+                    <th class="p-2 border">Nome</th>
+                    <th class="p-2 border">Cargo</th>
+                    <th class="p-2 border">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="user in usuarios" :key="user.id">
+                    <td class="p-2 border">{{ user.id }}</td>
+                    <td class="p-2 border">{{ user.nome }}</td>
+                    <td class="p-2 border">{{ user.cargo }}</td>
+                    <td class="p-2 border">
+                        <button @click="deletarUsuario(user.id)" class="text-red-600 font-bold">Apagar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const usuarios = ref([]);
+                const novoUsuario = ref({ nome: '', cargo: '' });
+                const API_URL = 'http://localhost:8080/api/usuarios';
+
+                const carregarUsuarios = async () => {
+                    const response = await fetch(API_URL);
+                    usuarios.value = await response.json();
+                };
+
+                const salvarUsuario = async () => {
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(novoUsuario.value)
+                    });
+                    novoUsuario.value = { nome: '', cargo: '' };
+                    carregarUsuarios();
+                };
+
+                const deletarUsuario = async (id) => {
+                    await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                    carregarUsuarios();
+                };
+
+                onMounted(carregarUsuarios);
+
+                return { usuarios, novoUsuario, salvarUsuario, deletarUsuario };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
