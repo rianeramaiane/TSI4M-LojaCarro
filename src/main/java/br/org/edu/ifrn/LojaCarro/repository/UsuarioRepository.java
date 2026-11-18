@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+    br.org.edu.ifrn.LojaCarro.model.Usuario findByEmail(String email);
 
 }

@@ -14,7 +14,7 @@ public class CarroServiceTest {
         carro.setModelo("modelo");
         carro.setAno(1990);
         carro.setId(1L);
-        carro.setPreco(10000);
+        carro.setPreco(10000.0);
 
         assertEquals(carro.getAno() > 1980, true);
         assertEquals(carro.getAno() > 2026, false);

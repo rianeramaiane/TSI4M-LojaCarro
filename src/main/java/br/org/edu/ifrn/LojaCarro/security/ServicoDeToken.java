@@ -1,0 +1,52 @@
+package br.org.edu.ifrn.LojaCarro.security;
+
+import br.org.edu.ifrn.LojaCarro.model.Usuario;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTCreationException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
+@Service
+public class ServicoDeToken {
+
+    // Essa variável puxa o segredo que vamos configurar no application.properties
+    @Value("${api.security.token.secret:chave-secreta-padrao}")
+    private String segredo;
+
+    public String gerarToken(Usuario usuario) {
+        try {
+            Algorithm algoritmo = Algorithm.HMAC256(segredo);
+            return JWT.create()
+                    .withIssuer("loja-carros-api")
+                    .withSubject(usuario.getEmail())
+                    .withExpiresAt(gerarDataExpiracao())
+                    .sign(algoritmo);
+        } catch (JWTCreationException excecao) {
+            throw new RuntimeException("Erro ao gerar token JWT", excecao);
+        }
+    }
+
+    public String validarToken(String token) {
+        try {
+            Algorithm algoritmo = Algorithm.HMAC256(segredo);
+            return JWT.require(algoritmo)
+                    .withIssuer("loja-carros-api")
+                    .build()
+                    .verify(token)
+                    .getSubject();
+        } catch (JWTVerificationException excecao) {
+            return ""; // Se der erro ou expirar, devolve vazio e o filtro bloqueia
+        }
+    }
+
+    private Instant gerarDataExpiracao() {
+        // Token expira em 2 horas. Fuso horário do Brasil (-03:00)
+        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+    }
+}
